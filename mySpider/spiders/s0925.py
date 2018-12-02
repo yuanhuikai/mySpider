@@ -5,6 +5,8 @@ import bs4
 import requests
 import scrapy
 
+from ..items import cdeItem
+
 logger = logging.getLogger("s0925")
 
 
@@ -14,22 +16,22 @@ class S0925Spider(scrapy.Spider):
     批准文号/注册证号	药品名称	剂型	规格	参比制剂	标准制剂	批准日期	上市许可持有人
     """
     main_info_list = [
-        "批准文号/注册证号",
-        "药品名称",
-        "剂型",
-        "规格",
-        "参比制剂",
-        "标准制剂",
-        "批准日期",
-        "上市许可持有人"
+        "pizhunwh",
+        "yaopinmc",
+        "jixing",
+        "guige",
+        "canbizj",
+        "biaozhunzj",
+        "pizhunrq",
+        "shangshixukecyr"
     ]
 
     detail_info_list = [
-        "活性成分", "活性成分（英文）", "药品名称", "药品名称（英文）",
-        "商品名", "商品名（英文）", "剂型", "给药途径", "规格	", "参比制剂",
-        "标准制剂", "TE代码", "ATC代码", "批准文号/注册证号", "批准日期",
-        "上市许可持有人", "生产厂商", "上市销售状况", "收录类别",
-        "说明书", "审评报告",
+        "huoxingcf", "huoxingcf_en", "yaopinmc", "yaopinmc_en",
+        "shangpinm", "shangpinm_en", "jixing", "geiyaotj", "guige", "canbizj",
+        "biaozhunzj", "tedaima", "atcdaima", "pizhunwh", "pizhunrq",
+        "shangshixukecyr", "shengchancs", "shangshixiaoshouzk", "shoululb",
+        "shuomingshu", "pingshenbg",
     ]
 
     name = "s0925"
@@ -46,7 +48,6 @@ class S0925Spider(scrapy.Spider):
         soup = bs4.BeautifulSoup(response.text)
         div_obj = soup.select_one("div .pagination")
         self.max_page = int(div_obj.attrs.get("item-total", 10)) if div_obj else 10
-        self.max_page = 1
 
     def start_requests(self):
         """
@@ -65,27 +66,33 @@ class S0925Spider(scrapy.Spider):
         """
         for scope in response.xpath(
                 "//body/div[contains(@id, 'container')]/section/div[contains(@class, 'showBox')]/div/table/tbody/tr"):
-            item = {}
+            item = cdeItem()
+            info_url = "http://202.96.26.102"
             for index, sub_scope in enumerate(scope.xpath("./td")):
                 if index == 1:
                     # 获取药品名称
-                    name = sub_scope.xpath("./a/text()").extract()[0]
-                    href = sub_scope.xpath("./a/@href").extract()[0]
-                    # 获取药品详细信息
-                    info_url = "http://202.96.26.102" + href
-                    item["name"] = name
-                    data = self.parse_detail(info_url, item)
-                    # yield scrapy.Request(info_url, meta={'item': item}, callback=self.parse_detail)
+                    name = sub_scope.xpath("./a/text()").extract()
+                    href = sub_scope.xpath("./a/@href").extract()
+                    info_url += href[0].strip() if href else ""  # 药品信息信息链接
+                    item[self.main_info_list[index]] = name[0].strip() if name else ""
                 else:
-                    text = sub_scope.xpath("./text()")
-                    item[self.main_info_list[index]] = text[0].extract() if text else ""
-
-            logger.info(item)
+                    text = sub_scope.xpath("./text()").extract()
+                    item[self.main_info_list[index]] = text[0].strip() if text else ""
+            yield scrapy.Request(info_url, meta={'item': item}, callback=self.parse_detail, dont_filter=True)
 
     def parse_detail(self, response):
         """
         解析药品详细信息
         """
-        for scope in response.xpath("//body/div[contains(@id, 'container')]/section/table/tbody/tr"):
-            logger.info(scope)
-        return 'TEST'
+        item = response.meta.get("item")
+        for index, scope in enumerate(response.xpath("//section/table[contains(@class, 'drug-lists')]/tr")):
+            if index != 19:
+                text = scope.xpath("./td")[1].xpath("./text()")
+                text = text[0].extract().strip() if text else ""
+            else:
+                text = scope.xpath("./td")[1].xpath("./a/@href")
+                text = "http:" + text[0].extract().strip() if text else ""
+            item[self.detail_info_list[index]] = text
+        item["url"] = response.url
+        logger.info(item)
+        return item
