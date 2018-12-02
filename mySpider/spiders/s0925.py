@@ -94,5 +94,4 @@ class S0925Spider(scrapy.Spider):
                 text = "http:" + text[0].extract().strip() if text else ""
             item[self.detail_info_list[index]] = text
         item["url"] = response.url
-        logger.info(item)
         return item

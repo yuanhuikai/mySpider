@@ -62,4 +62,4 @@ class MyspiderPipeline(object):
         :param spider:
         :return:
         """
-        self.wb.save("~/" + time.strftime("%Y%m%d%H%M") + "中国上市药品.xlsx")
+        self.wb.save("./" + time.strftime("%Y%m%d%H%M") + "中国上市药品.xlsx")
