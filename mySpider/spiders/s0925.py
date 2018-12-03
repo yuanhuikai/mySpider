@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
 
-import bs4
-import requests
 import scrapy
 
 from ..items import cdeItem
@@ -66,11 +64,6 @@ class S0925Spider(scrapy.Spider):
         self.base_url = "http://202.96.26.102/index/lists?scpzrq_start=" + sdate + "&scpzrq_end=" + edate
         self.sdate = sdate
         self.edate = edate
-
-        # 获取数据总条数
-        response = requests.get(self.base_url)
-        soup = bs4.BeautifulSoup(response.text)
-        div_obj = soup.select_one("div .pagination")
         self.max_page = 100
 
     def start_requests(self):
