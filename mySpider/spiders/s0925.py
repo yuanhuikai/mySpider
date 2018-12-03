@@ -71,7 +71,7 @@ class S0925Spider(scrapy.Spider):
         response = requests.get(self.base_url)
         soup = bs4.BeautifulSoup(response.text)
         div_obj = soup.select_one("div .pagination")
-        self.max_page = 20
+        self.max_page = 100
 
     def start_requests(self):
         """
