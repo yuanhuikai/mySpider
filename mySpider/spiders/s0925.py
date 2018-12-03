@@ -34,6 +34,30 @@ class S0925Spider(scrapy.Spider):
         "shuomingshu", "pingshenbg",
     ]
 
+    detail_info_map = {
+        "活性成分": "huoxingcf",
+        "活性成分（英文）": "huoxingcf_en",
+        "药品名称": "yaopinmc",
+        "药品名称（英文）": "yaopinmc_en",
+        "商品名": "shangpinm",
+        "商品名（英文）": "shangpinm_en",
+        "剂型": "jixing",
+        "给药途径": "geiyaotj",
+        "规格": "guige",
+        "参比制剂": "canbizj",
+        "标准制剂": "biaozhunzj",
+        "TE代码": "tedaima",
+        "ATC代码": "atcdaima",
+        "批准文号/注册证号": "pizhunwh",
+        "批准日期": "pizhunrq",
+        "上市许可持有人": "shangshixukecyr",
+        "生产厂商": "shengchancs",
+        "上市销售状况": "shangshixiaoshouzk",
+        "收录类别": "shoululb",
+        "说明书": "shuomingshu",
+        "审评报告": "pingshenbg",
+    }
+
     name = "s0925"
     allowed_domains = ["*"]
 
@@ -47,7 +71,7 @@ class S0925Spider(scrapy.Spider):
         response = requests.get(self.base_url)
         soup = bs4.BeautifulSoup(response.text)
         div_obj = soup.select_one("div .pagination")
-        self.max_page = int(div_obj.attrs.get("item-total", 10)) if div_obj else 10
+        self.max_page = 20
 
     def start_requests(self):
         """
@@ -78,7 +102,7 @@ class S0925Spider(scrapy.Spider):
                 else:
                     text = sub_scope.xpath("./text()").extract()
                     item[self.main_info_list[index]] = text[0].strip() if text else ""
-            yield scrapy.Request(info_url, meta={'item': item}, callback=self.parse_detail, dont_filter=True)
+            yield scrapy.Request(info_url, meta={"item": item}, callback=self.parse_detail, dont_filter=True)
 
     def parse_detail(self, response):
         """
@@ -92,6 +116,9 @@ class S0925Spider(scrapy.Spider):
             else:
                 text = scope.xpath("./td")[1].xpath("./a/@href")
                 text = "http:" + text[0].extract().strip() if text else ""
-            item[self.detail_info_list[index]] = text
+            attr_name = scope.xpath("./td/text()")[0].extract().strip()
+            attr_name_en = self.detail_info_map.get(attr_name, "")
+            if attr_name_en:
+                item[attr_name_en] = text
         item["url"] = response.url
         return item

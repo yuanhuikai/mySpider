@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import time
-
 # Define your item pipelines here
 #
-# Don't forget to add your pipeline to the ITEM_PIPELINES setting
+# Don"t forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 from openpyxl import Workbook
 
@@ -39,20 +37,20 @@ class MyspiderPipeline(object):
         self.wb = Workbook()
         self.ws = self.wb.active
         self.ws.append([
-            '批准文号', '药品名称', '剂型', '规格', '参比制剂',
-            '标准制剂', '批准日期', '上市许可参与人', '活性成分', '活性成分-英文',
-            '药品名称-英文', '商品名', '商品名-英文', '给药途径', "TE 代码",
+            "批准文号", "药品名称", "剂型", "规格", "参比制剂",
+            "标准制剂", "批准日期", "上市许可参与人", "活性成分", "活性成分-英文",
+            "药品名称-英文", "商品名", "商品名-英文", "给药途径", "TE 代码",
             "ATC 代码", "生产厂商", "上市销售状况", "收录类别", "说明书",
             "审评报告", "药品名称链接"
         ])
 
     def process_item(self, item, spider):
         self.ws.append([
-            item['pizhunwh'], item["yaopinmc"], item["jixing"], item['guige'], item['canbizj'],
-            item['biaozhunzj'], item['pizhunrq'], item['shangshixukecyr'], item['huoxingcf'], item['huoxingcf_en'],
-            item['yaopinmc_en'], item['shangpinm'], item['shangpinm_en'], item['geiyaotj'], item['tedaima'],
-            item['atcdaima'], item['shengchancs'], item['shangshixiaoshouzk'], item['shoululb'], item['shuomingshu'],
-            item['pingshenbg'], item['url'],
+            item["pizhunwh"], item["yaopinmc"], item["jixing"], item["guige"], item["canbizj"],
+            item["biaozhunzj"], item["pizhunrq"], item["shangshixukecyr"], item["huoxingcf"], item["huoxingcf_en"],
+            item["yaopinmc_en"], item["shangpinm"], item["shangpinm_en"], item["geiyaotj"], item["tedaima"],
+            item["atcdaima"], item["shengchancs"], item["shangshixiaoshouzk"], item["shoululb"], item["shuomingshu"],
+            item["pingshenbg"], item["url"],
         ])
         return item
 
@@ -62,4 +60,4 @@ class MyspiderPipeline(object):
         :param spider:
         :return:
         """
-        self.wb.save("./" + time.strftime("%Y%m%d%H%M") + "中国上市药品.xlsx")
+        self.wb.save("./" + spider.sdate + "_" + spider.edate + "_" + "中国上市药品.xlsx")
